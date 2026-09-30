@@ -1,0 +1,25 @@
+version: '3'
+
+tasks:
+  default:
+    desc: Build the bgtutor binary
+    cmds:
+      - go build -o bgtutor ./cmd/bgtutor
+  run:
+    desc: Run the MCP server locally
+    cmds:
+      - go run ./cmd/bgtutor serve
+  test:
+    desc: Run all tests with the race detector
+    cmds:
+      - go test -race ./...
+  validate:
+    desc: Validate the episode library
+    cmds:
+      - go run ./cmd/bgtutor validate
+  install:
+    cmds:
+      - go install ./cmd/bgtutor
+  clean:
+    cmds:
+      - rm -f bgtutor coverage.out coverage.html

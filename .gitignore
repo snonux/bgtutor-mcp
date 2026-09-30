@@ -1,0 +1,18 @@
+# Build and test output
+/bgtutor
+*.test
+coverage.out
+coverage.html
+
+# Personal learner data
+/data/vocabulary/
+
+# Local Go workspace
+go.work
+go.work.sum
+
+# Temporary and OS files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
