@@ -16,8 +16,9 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/bgtutor ./cmd/bgtu
 
 FROM gcr.io/distroless/static-debian12
 COPY --from=build /out/bgtutor /usr/local/bin/bgtutor
-# /data holds episodes/ and vocabulary/ (see FORMAT.md). Mount it from
-# a volume so the vocabulary notebook survives restarts.
+# /data holds episodes/, citizenship-test/ and personal vocabulary/progress
+# (see FORMAT.md and CITIZENSHIP.md). Mount a volume so learning data persists.
+# Set BGTUTOR_MODE=citizenship to select citizenship preparation.
 ENV BGTUTOR_DATA_DIR=/data BGTUTOR_ADDR=:8080
 EXPOSE 8080
 # BGTUTOR_TOKEN must be set: serve refuses a non-localhost address without it.

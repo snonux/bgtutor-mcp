@@ -1,7 +1,7 @@
-// Command bgtutor is the standalone Bulgarian Podcast Tutor MCP server.
+// Command bgtutor is the standalone Bulgarian tutor MCP server.
 //
-//	bgtutor serve     run the MCP server (Streamable HTTP) over the episode library
-//	bgtutor validate  check episode folders against FORMAT.md
+//	bgtutor serve     run the MCP server (Streamable HTTP), with podcast or citizenship mode
+//	bgtutor validate  check podcast or citizenship content
 //	bgtutor publish   mark a valid draft episode as ready
 //
 // Episodes are prepared by a coding agent (Claude Code, Codex, ...) following
@@ -20,13 +20,13 @@ import (
 func main() {
 	root := &cobra.Command{
 		Use:           "bgtutor",
-		Short:         "Bulgarian Podcast Tutor: prepared podcast lessons served over MCP",
+		Short:         "Bulgarian Tutor: podcast lessons and citizenship preparation over MCP",
 		Version:       internal.Version,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 	root.PersistentFlags().String("data-dir", envOr("BGTUTOR_DATA_DIR", "data"),
-		"library directory holding episodes/ and vocabulary/ (env BGTUTOR_DATA_DIR)")
+		"library directory holding episodes/, citizenship-test/ and learner data (env BGTUTOR_DATA_DIR)")
 	root.AddCommand(newServeCmd(), newValidateCmd(), newPublishCmd())
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, "bgtutor:", err)

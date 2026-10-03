@@ -128,3 +128,11 @@ note, which is a useful "this keeps tripping me up" signal for review.
 `bgtutor validate [id...]` checks folders against this spec and lists every
 problem; `bgtutor publish <id>` flips a valid draft to `ready`. The server also validates on load; an invalid or `draft` episode is
 listed with `ready: false` and a reason, and `get_paragraph` refuses it.
+
+## Citizenship content and progress
+
+Citizenship mode uses the assets repo's `citizenship-test/` folder and stores
+personal learning progress in `citizenship-progress/saved.json`, alongside
+the shared vocabulary notebook. Markdown lessons, practice papers, prepared
+JSON official tests and progress are documented in [CITIZENSHIP.md](CITIZENSHIP.md).
+Podcast format version 1 is unchanged.

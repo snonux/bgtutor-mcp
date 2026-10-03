@@ -1,8 +1,7 @@
-// Package bgtutor implements the Bulgarian Podcast Tutor: an episode library of
-// prepared English podcast transcripts and a vocabulary notebook, both stored as
-// plain JSON files on disk. The MCP server (internal/bgtutor/mcpserver) and the
-// validation and publishing commands use this library. Coding agents prepare
-// episodes offline following PREPARE.md.
+// Package bgtutor implements podcast lessons, citizenship study/exams and
+// learner vocabulary/progress using plain files on disk. The MCP server and
+// validation commands use these libraries. Coding agents prepare episodes
+// offline following PREPARE.md; citizenship assets live in bgtutor-assets.
 //
 // The on-disk format is documented in FORMAT.md.
 package bgtutor

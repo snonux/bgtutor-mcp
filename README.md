@@ -1,4 +1,4 @@
-# bgtutor-mcp: Bulgarian Podcast Tutor
+# bgtutor-mcp: Bulgarian Tutor
 
 A standalone MCP server that turns English podcasts into voice-guided
 Bulgarian listening lessons: a voice AI (Claude or ChatGPT voice mode) pulls
@@ -11,6 +11,9 @@ English transcript ──► coding agent + PREPARE.md (offline) ──► data/
                                                                │
                      voice AI ◄── MCP over HTTPS ◄── bgtutor serve ┘
 ```
+
+Citizenship preparation is also available: [the teaching plan and MCP workflow](CITIZENSHIP.md)
+cover live grammar classes, drills, interview rehearsal and mock exams.
 
 ## Build
 
@@ -57,6 +60,7 @@ BGTUTOR_TOKEN=$(openssl rand -hex 32) ./bgtutor serve --addr 127.0.0.1:8080
 | Setting | Flag / env | Default |
 |---|---|---|
 | Library directory | `--data-dir` / `BGTUTOR_DATA_DIR` | `data` |
+| Tutor mode | `--mode` / `BGTUTOR_MODE` | `podcast`; use `citizenship` for exam preparation |
 | Listen address | `--addr` / `BGTUTOR_ADDR` | `127.0.0.1:8080` |
 | Bearer token | `BGTUTOR_TOKEN` | none; required for non-localhost addresses |
 
@@ -64,10 +68,25 @@ With a token set, every `/mcp` request needs `Authorization: Bearer <token>`
 or `?token=<token>` on the URL (for connector UIs that only take a URL).
 `/healthz` is always open.
 
-Transport is Streamable HTTP in stateless mode: the voice AI passes the episode
-id and paragraph index on every call, and the server keeps no session state.
+Transport is Streamable HTTP in stateless mode: the voice AI passes the content
+id and index on every call. Vocabulary and citizenship learning progress are
+persisted; the server keeps no active lesson or exam session.
 
-### Tools
+### Citizenship mode
+
+```bash
+./bgtutor validate --mode citizenship --data-dir ../bgtutor-assets
+./bgtutor serve --mode citizenship --data-dir ../bgtutor-assets
+```
+
+The connected AI follows live-class instructions: ask, listen, explain, practise
+and review, one question at a time. The server exposes the full coverage plan,
+individual study sections, questions, practice feedback, complete mock papers
+and grading. The assets include 36 grammar chapters, interview rehearsal,
+three original practice tests and three official samples. See
+[CITIZENSHIP.md](CITIZENSHIP.md) for the tools and content format.
+
+### Podcast tools
 
 | Tool | Input | Returns |
 |---|---|---|
@@ -82,7 +101,9 @@ as tool errors with a message the AI can read out, e.g. "Valid indexes are 1
 to 9". The session instructions for the voice AI are sent on initialize; see
 `Instructions` in `internal/bgtutor/mcpserver/server.go`.
 
-The vocabulary notebook is `data/vocabulary/saved.json` (git-ignored).
+The vocabulary notebook is `<data-dir>/vocabulary/saved.json`. Citizenship
+progress is `<data-dir>/citizenship-progress/saved.json`; both are personal
+learner data and should be git-ignored.
 
 The server logs every HTTP request to stderr, including health checks and
 rejected requests. Each access log has the method, path, status, duration, and
@@ -95,6 +116,9 @@ lesson content do not appear in the logs.
 docker build -t bgtutor:0.1.2 .   # from the repo root
 docker run -e BGTUTOR_TOKEN=... -v $PWD/data:/data -p 8080:8080 bgtutor:0.1.2
 ```
+
+Set `BGTUTOR_MODE=citizenship` and mount the assets repo at `/data` for citizenship
+lessons; the same volume stores vocabulary and progress.
 
 The image runs only `bgtutor serve` (static binary on distroless), with the
 library at `/data`. The k3s deployment lives in snonux/conf under `f3s/bgtutor`.

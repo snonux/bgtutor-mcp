@@ -6,6 +6,7 @@ coverage.html
 
 # Personal learner data
 /data/vocabulary/
+/data/citizenship-progress/
 
 # Local Go workspace
 go.work

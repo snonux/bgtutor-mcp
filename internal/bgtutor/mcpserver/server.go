@@ -1,6 +1,6 @@
-// Package mcpserver exposes the Bulgarian Podcast Tutor library over MCP
-// (Streamable HTTP). The server is stateless: the voice AI passes the episode
-// id and paragraph index on every call, so no session state is kept.
+// Package mcpserver exposes podcast lessons and citizenship preparation over
+// MCP (Streamable HTTP). The AI passes content ids and indexes on every call;
+// vocabulary and learning progress persist, but no active session is kept.
 package mcpserver
 
 import (
@@ -51,6 +51,12 @@ func New(dataDir string) *mcp.Server {
 		Version: internal.Version,
 	}, &mcp.ServerOptions{Instructions: Instructions})
 
+	addPodcastTools(s, t)
+	addVocabularyTools(s, t)
+	return s
+}
+
+func addPodcastTools(s *mcp.Server, t *tools) {
 	mcp.AddTool(s, &mcp.Tool{
 		Name: "list_episodes",
 		Description: "List the podcast episodes in the library with title, topic, difficulty, " +
@@ -65,10 +71,13 @@ func New(dataDir string) *mcp.Server {
 			"fallback only. Includes grammar_notes, vocabulary_notes and background for teaching.",
 		Annotations: readOnly(),
 	}, t.getParagraph)
+}
+
+func addVocabularyTools(s *mcp.Server, t *tools) {
 	mcp.AddTool(s, &mcp.Tool{
 		Name: "save_vocabulary",
 		Description: "Save a Bulgarian word, phrase or grammar rule the learner doesn't know yet " +
-			"to their vocabulary notebook. Pass episode_id and paragraph_index so the source " +
+			"to their vocabulary notebook. For podcast terms, pass episode_id and paragraph_index so the source " +
 			"sentence is stored for context. Saving the same term again is safe.",
 		Annotations: &mcp.ToolAnnotations{IdempotentHint: true},
 	}, t.saveVocabulary)
@@ -86,7 +95,6 @@ func New(dataDir string) *mcp.Server {
 			"(matches term, translation or note), kind, episode_id, limit.",
 		Annotations: readOnly(),
 	}, t.listVocabulary)
-	return s
 }
 
 func readOnly() *mcp.ToolAnnotations { return &mcp.ToolAnnotations{ReadOnlyHint: true} }

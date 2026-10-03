@@ -10,29 +10,72 @@ import (
 )
 
 func newValidateCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "validate [EPISODE_ID...]",
-		Short: "Check episode folders against FORMAT.md (all episodes if none given)",
-		Long: `Check episode folders against FORMAT.md and list every problem.
-A draft episode with no problems is reported as valid; publish it with
-"bgtutor publish EPISODE_ID".`,
+	var mode string
+	cmd := &cobra.Command{
+		Use:   "validate [ID...]",
+		Short: "Check podcast episodes or citizenship tests (all if no IDs given)",
 		RunE: func(cmd *cobra.Command, ids []string) error {
-			eps, err := loadEpisodes(cmd, ids)
-			if err != nil {
-				return err
+			switch mode {
+			case "podcast":
+				return validateEpisodes(cmd, ids)
+			case "citizenship":
+				return validateCitizenship(cmd, ids)
+			default:
+				return fmt.Errorf("unknown mode %q; choose podcast or citizenship", mode)
 			}
-			bad := 0
-			for _, ep := range eps {
-				if !reportEpisode(ep) {
-					bad++
-				}
-			}
-			if bad > 0 {
-				return fmt.Errorf("%d of %d episodes have problems", bad, len(eps))
-			}
-			return nil
 		},
 	}
+	cmd.Flags().StringVar(&mode, "mode", envOr("BGTUTOR_MODE", "podcast"), "library to validate: podcast or citizenship (env BGTUTOR_MODE)")
+	return cmd
+}
+
+func validateEpisodes(cmd *cobra.Command, ids []string) error {
+	eps, err := loadEpisodes(cmd, ids)
+	if err != nil {
+		return err
+	}
+	bad := 0
+	for _, ep := range eps {
+		if !reportEpisode(ep) {
+			bad++
+		}
+	}
+	if bad > 0 {
+		return fmt.Errorf("%d of %d episodes have problems", bad, len(eps))
+	}
+	return nil
+}
+
+func validateCitizenship(cmd *cobra.Command, ids []string) error {
+	dataDir, _ := cmd.Flags().GetString("data-dir")
+	lib := bgtutor.NewCitizenshipLibrary(filepath.Join(dataDir, "citizenship-test"))
+	catalog, err := lib.Catalog()
+	if err != nil {
+		return err
+	}
+	if len(ids) == 0 {
+		for _, test := range catalog.Tests {
+			ids = append(ids, test.ID)
+		}
+	}
+	if len(ids) == 0 {
+		return fmt.Errorf("no citizenship tests found")
+	}
+	bad := 0
+	for _, id := range ids {
+		test, err := lib.Test(id)
+		if err != nil {
+			cmd.Printf("INVALID %s: %v\n", id, err)
+			bad++
+			continue
+		}
+		cmd.Printf("ready   %s (%d questions)\n", id, len(test.Questions))
+	}
+	if bad > 0 {
+		return fmt.Errorf("%d of %d citizenship tests have problems", bad, len(ids))
+	}
+	cmd.Printf("%d study documents available\n", len(catalog.Materials))
+	return nil
 }
 
 func newPublishCmd() *cobra.Command {

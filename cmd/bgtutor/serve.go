@@ -18,28 +18,33 @@ import (
 )
 
 func newServeCmd() *cobra.Command {
-	var addr string
+	var addr, mode string
 	cmd := &cobra.Command{
 		Use:   "serve",
-		Short: "Run the MCP server over the episode library (Streamable HTTP at /mcp)",
+		Short: "Run the selected tutor mode (Streamable HTTP at /mcp)",
 		Long: `Run the MCP server. Set BGTUTOR_TOKEN to require a bearer token
 ("Authorization: Bearer <token>" or "?token=<token>" on the URL). Without a
 token the server refuses to listen on anything but localhost.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			dataDir, _ := cmd.Flags().GetString("data-dir")
-			return serve(cmd.Context(), dataDir, addr, os.Getenv("BGTUTOR_TOKEN"))
+			return serve(cmd.Context(), dataDir, addr, os.Getenv("BGTUTOR_TOKEN"), mode)
 		},
 	}
+	cmd.Flags().StringVar(&mode, "mode", envOr("BGTUTOR_MODE", "podcast"), "tutor mode: podcast or citizenship (env BGTUTOR_MODE)")
 	cmd.Flags().StringVar(&addr, "addr", envOr("BGTUTOR_ADDR", "127.0.0.1:8080"), "listen address (env BGTUTOR_ADDR)")
 	return cmd
 }
 
-func serve(ctx context.Context, dataDir, addr, token string) error {
+func newHTTPServer(dataDir, addr, token, mode string) (*http.Server, error) {
 	if token == "" && !isLoopback(addr) {
-		return fmt.Errorf("refusing to listen on %s without BGTUTOR_TOKEN; set a token or use 127.0.0.1", addr)
+		return nil, fmt.Errorf("refusing to listen on %s without BGTUTOR_TOKEN; set a token or use 127.0.0.1", addr)
 	}
 	if st, err := os.Stat(dataDir); err != nil || !st.IsDir() {
-		return fmt.Errorf("data dir %q does not exist", dataDir)
+		return nil, fmt.Errorf("data dir %q does not exist", dataDir)
+	}
+	server, err := mcpserver.NewWithMode(dataDir, mode)
+	if err != nil {
+		return nil, err
 	}
 	// Keep SDK diagnostics at warning level while recording every HTTP request
 	// through a separate access logger, so normal traffic is visible in pod logs.
@@ -47,8 +52,16 @@ func serve(ctx context.Context, dataDir, addr, token string) error {
 	accessLogger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           mcpserver.Handler(mcpserver.New(dataDir), mcpserver.HTTPOptions{Token: token, Logger: logger, AccessLogger: accessLogger}),
+		Handler:           mcpserver.Handler(server, mcpserver.HTTPOptions{Token: token, Logger: logger, AccessLogger: accessLogger}),
 		ReadHeaderTimeout: 10 * time.Second,
+	}
+	return srv, nil
+}
+
+func serve(ctx context.Context, dataDir, addr, token, mode string) error {
+	srv, err := newHTTPServer(dataDir, addr, token, mode)
+	if err != nil {
+		return err
 	}
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -66,7 +79,7 @@ func serve(ctx context.Context, dataDir, addr, token string) error {
 	if token != "" {
 		auth = "bearer token"
 	}
-	fmt.Fprintf(os.Stderr, "bgtutor: serving %s at http://%s/mcp (auth: %s)\n", dataDir, addr, auth)
+	fmt.Fprintf(os.Stderr, "bgtutor: serving %s (%s mode) at http://%s/mcp (auth: %s)\n", dataDir, mode, addr, auth)
 	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
