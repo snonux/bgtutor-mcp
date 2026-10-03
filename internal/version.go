@@ -1,5 +1,4 @@
 package internal
 
-// Version is shared by the CLI and MCP server. The extraction preserves the
-// previously advertised version; future releases are versioned independently.
-const Version = "0.29.6"
+// Version is shared by the CLI and both MCP tutor modes.
+const Version = "0.30.0"

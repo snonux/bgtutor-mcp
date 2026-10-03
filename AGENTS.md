@@ -10,7 +10,7 @@ Standalone Go MCP server for Bulgarian podcast lessons. The binary is named
 - Validate citizenship assets: `go run ./cmd/bgtutor validate --mode citizenship --data-dir ../bgtutor-assets`.
 - Validate episodes: `go run ./cmd/bgtutor validate`.
 - Run locally: `go run ./cmd/bgtutor serve`.
-- Build container: `docker build -t bgtutor:0.1.2 .`.
+- Build container: `docker build -t bgtutor:0.30.0 .`.
 
 The default library is `data/`; override it with `--data-dir` or
 `BGTUTOR_DATA_DIR`. Set `BGTUTOR_TOKEN` to listen beyond localhost.

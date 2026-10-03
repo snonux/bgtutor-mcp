@@ -1,6 +1,6 @@
 # Container image for the bgtutor MCP server.
 # Build from the repository root (the context must include go.mod):
-#   docker build -t bgtutor:0.1.2 .
+#   docker build -t bgtutor:0.30.0 .
 #
 # Only `bgtutor serve` runs in the container. Episodes are prepared offline by
 # a coding agent following PREPARE.md and copied into the mounted data

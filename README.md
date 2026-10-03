@@ -113,8 +113,8 @@ lesson content do not appear in the logs.
 ## Container image
 
 ```bash
-docker build -t bgtutor:0.1.2 .   # from the repo root
-docker run -e BGTUTOR_TOKEN=... -v $PWD/data:/data -p 8080:8080 bgtutor:0.1.2
+docker build -t bgtutor:0.30.0 .   # from the repo root
+docker run -e BGTUTOR_TOKEN=... -v $PWD/data:/data -p 8080:8080 bgtutor:0.30.0
 ```
 
 Set `BGTUTOR_MODE=citizenship` and mount the assets repo at `/data` for citizenship
