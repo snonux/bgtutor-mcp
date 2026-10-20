@@ -5,7 +5,7 @@
 # Only `bgtutor serve` runs in the container. Episodes are prepared offline by
 # a coding agent following PREPARE.md and copied into the mounted data
 # directory.
-FROM golang:1.24-alpine AS build
+FROM golang:1.27-alpine AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
