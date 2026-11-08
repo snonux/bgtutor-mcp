@@ -133,7 +133,8 @@ localhost with a public `Host` header; that works when a token is set.
 ## Container runtime builds
 
 The Dockerfile pins the Go1.27.3 builder and Debian13 distroless nonroot
-runtime by digest. Application version remains0.30.0 for a runtime-only rebuild.
+runtime by digest. Application version remains0.30.0. The maintenance build also includes the
+merged MCP SDK1.4.1 security fixes; it does not change learner-data schemas.
 Build the race-test target before publishing an image:
 
 ```sh
