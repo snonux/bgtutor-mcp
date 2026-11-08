@@ -129,3 +129,19 @@ Both Claude (custom connector) and ChatGPT (developer mode connector) need a
 public HTTPS URL ending in `/mcp`. The plan is to run `bgtutor serve` with a
 token behind an HTTPS tunnel or reverse proxy. A tunnel reaches the server via
 localhost with a public `Host` header; that works when a token is set.
+
+## Container runtime builds
+
+The Dockerfile pins the Go1.27.3 builder and Debian13 distroless nonroot
+runtime by digest. Application version remains0.30.0 for a runtime-only rebuild.
+Build the race-test target before publishing an image:
+
+```sh
+podman build --target test -t bgtutor-runtime-tests .
+podman build --target runtime -t bgtutor:<new-immutable-build-tag> .
+```
+
+The test target requires only the two checked-in sample-episode JSON fixtures;
+.dockerignore keeps learner notebooks, prepared libraries and credentials out
+of the build context. A runtime image's nonroot default does not override an
+orchestrator's explicit securityContext; verify the deployed UID separately.

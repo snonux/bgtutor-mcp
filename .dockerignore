@@ -1,4 +1,5 @@
-# Keep the build context small: only Go sources and module files are needed.
+# Keep the context to source, module files and the two checked-in test fixtures.
+# Learner data, assets, credentials and build artifacts remain excluded.
 *
 !go.mod
 !go.sum
@@ -6,3 +7,12 @@
 !cmd/**
 !internal/
 !internal/**
+
+!data/
+data/*
+!data/episodes/
+data/episodes/*
+!data/episodes/001-cooking-basics/
+data/episodes/001-cooking-basics/*
+!data/episodes/001-cooking-basics/meta.json
+!data/episodes/001-cooking-basics/paragraphs.json
